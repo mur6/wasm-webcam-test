@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Wasm and webcam test</h1>
+        <div class="buttons-area">
+            <button id="front-camera">Front</button>
+            <button id="back-camera">Back</button>
+        </div>
+        <div class="buttons-area">
+            <button id="capture-button">Capture</button>
+        </div>
+        <div id="canvas-display"></div>
+    </div>
+<script type="module">
+    import video_util from "./js/video.js";
+    import {sendImageData} from "./js/send_wasm.js";
+    import wasmModule from "./main.js";
+
+    document.getElementById("front-camera").addEventListener("click", (event) => {
+        video_util.stopCamera();
+        video_util.switchCamera('user');
+    });
+    document.getElementById("back-camera").addEventListener("click", (event) => {
+        video_util.stopCamera();
+        video_util.switchCamera('environment');
+    });
+
+    const instance = wasmModule({
+        async onRuntimeInitialized() {
+            let wasm_module = await instance;
+            //console.log(wasm_module.image_input);
+            document.getElementById("canvas-display").appendChild(video_util.getCanvas());
+            //....
+            document.getElementById("capture-button").addEventListener("click", (event) => {
+                video_util.copyToCanvas();
+                sendImageData(wasm_module, video_util.getCanvas());
+            });
+        }
+    });
+</script>
+</body>
+</html>
